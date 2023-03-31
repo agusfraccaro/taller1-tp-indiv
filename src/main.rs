@@ -5,16 +5,20 @@ use pieza::Color;
 use pieza::Tipo;
 use pieza::ResultadoCaptura;
 
-use std::fs;
+use std::fs::File;
 use std::env;
+use std::io::{self, prelude::*};
 
-fn leer_tablero(file_path: &str) -> Result<(Pieza,Pieza),String> {
-    let file_content = match fs::read_to_string(file_path) {
-        Ok(contenido) => contenido,
+fn leer_tablero(file_path: &str) -> io::Result<(Pieza, Pieza)> {
+    let mut file = match File::open(file_path){
+        Ok(file) => file,
         Err(_) => {
-            return Err(String::from("Error: no se pudo leer el archivo."));
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "Error: no se pudo abrir el archivo."));
         }
     };
+    
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
 
     let mut pieza_blanca: Option<Pieza> = None;
     let mut pieza_negra: Option<Pieza> = None;
@@ -22,11 +26,16 @@ fn leer_tablero(file_path: &str) -> Result<(Pieza,Pieza),String> {
     let mut is_pieza_negra = false;
     let mut is_pieza_blanca = false;
 
-    for (i, line) in file_content.lines().enumerate() {
-        for (j, c) in line.chars().enumerate() {
-            if c == '_' || c == ' ' {
+    let mut i = 1;
+    for line in contents.lines() {
+        let mut j = 1;
+        for c in line.chars() {
+            if c == '_' {
+                j += 1;
                 continue;
             }
+
+            if c == ' ' { continue; }
 
             let color : Color = if c.is_lowercase() { Color::Blanco } else { Color::Negro };
             let tipo_pieza = match c.to_ascii_lowercase() {
@@ -37,35 +46,32 @@ fn leer_tablero(file_path: &str) -> Result<(Pieza,Pieza),String> {
                 'd' => Tipo::Dama,
                 'r' => Tipo::Rey,
                 _ => {
-                    return Err(String::from("Error: se encontró una pieza inválida en el archivo"));
+                    return Err(io::Error::new(io::ErrorKind::InvalidData, "Error: carácter inválido en el archivo."));
                 }
             };
 
             match color {
                 Color::Blanco => {
                     if is_pieza_blanca {
-                        return Err(String::from("Error: Se encontraron más de una pieza blanca en el archivo."));
+                        return Err(io::Error::new(io::ErrorKind::InvalidData, "Error: hay dos piezas blancas en el archivo."));
                     }
                     is_pieza_blanca = true;
-                    pieza_blanca = Some(Pieza::new(color, tipo_pieza, i, j));
+                    pieza_blanca = Some(Pieza::new(color, tipo_pieza, i, j+1));
                 }
                 Color::Negro => {
                     if is_pieza_negra {
-                        return Err(String::from("Error: Se encontraron más de una pieza negra en el archivo"));
+                        return Err(io::Error::new(io::ErrorKind::InvalidData, "Error: hay dos piezas negras en el archivo."));
                     }
                     is_pieza_negra = true;
-                    pieza_negra = Some(Pieza::new(color, tipo_pieza, i, j));
+                    pieza_negra = Some(Pieza::new(color, tipo_pieza, i, j+1));
                 }
             }
         }    
+        i += 1;
     }
 
-    if !is_pieza_blanca {
-        return Err(String::from("Error: No hay pieza blanca en el archivo"));
-    }
-
-    if !is_pieza_negra {
-        return Err(String::from("Error: No hay una pieza negra en el archivo"));
+    if !is_pieza_blanca || !is_pieza_negra{
+        return Err(io::Error::new(io::ErrorKind::InvalidData, "Error: el archivo debería contener dos piezas."));
     }
 
     Ok((pieza_negra.unwrap(), pieza_blanca.unwrap()))

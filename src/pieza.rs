@@ -91,7 +91,7 @@ impl Pieza {
     fn puede_capturar_diagonal(&self, otra_pieza: &Pieza) -> bool {
         let fila_dif = (self.fila as i32 - otra_pieza.fila as i32).abs();
         let col_dif = (self.col as i32 - otra_pieza.col as i32).abs();
-
+        
         if fila_dif == col_dif && fila_dif != 0 && col_dif != 0 {
             return true;
         }
