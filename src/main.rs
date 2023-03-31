@@ -1,9 +1,10 @@
 mod pieza;
+mod tipo;
+mod color;
 
 use pieza::Pieza;
-use pieza::Color;
-use pieza::Tipo;
-use pieza::ResultadoCaptura;
+use color::Color;
+use tipo::Tipo;
 
 use std::fs::File;
 use std::env;
@@ -20,11 +21,10 @@ fn leer_tablero(file_path: &str) -> io::Result<(Pieza, Pieza)> {
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
 
-    let mut pieza_blanca: Option<Pieza> = None;
-    let mut pieza_negra: Option<Pieza> = None;
-
     let mut is_pieza_negra = false;
     let mut is_pieza_blanca = false;
+
+    let mut piezas = Vec::new();
 
     let mut i = 1;
     for line in contents.lines() {
@@ -46,7 +46,7 @@ fn leer_tablero(file_path: &str) -> io::Result<(Pieza, Pieza)> {
                 'd' => Tipo::Dama,
                 'r' => Tipo::Rey,
                 _ => {
-                    return Err(io::Error::new(io::ErrorKind::InvalidData, "Error: carácter inválido en el archivo."));
+                    return Err(io::Error::new(io::ErrorKind::InvalidData, format!("Error: caracter inválido '{}' en fila {}", c, i)));
                 }
             };
 
@@ -56,14 +56,14 @@ fn leer_tablero(file_path: &str) -> io::Result<(Pieza, Pieza)> {
                         return Err(io::Error::new(io::ErrorKind::InvalidData, "Error: hay dos piezas blancas en el archivo."));
                     }
                     is_pieza_blanca = true;
-                    pieza_blanca = Some(Pieza::new(color, tipo_pieza, i, j+1));
+                    piezas.push(Pieza::new(color, tipo_pieza, i, j+1));
                 }
                 Color::Negro => {
                     if is_pieza_negra {
                         return Err(io::Error::new(io::ErrorKind::InvalidData, "Error: hay dos piezas negras en el archivo."));
                     }
                     is_pieza_negra = true;
-                    pieza_negra = Some(Pieza::new(color, tipo_pieza, i, j+1));
+                    piezas.push(Pieza::new(color, tipo_pieza, i, j+1));
                 }
             }
         }    
@@ -74,23 +74,23 @@ fn leer_tablero(file_path: &str) -> io::Result<(Pieza, Pieza)> {
         return Err(io::Error::new(io::ErrorKind::InvalidData, "Error: el archivo debería contener dos piezas."));
     }
 
-    Ok((pieza_negra.unwrap(), pieza_blanca.unwrap()))
+    Ok((piezas.remove(0), piezas.remove(0)))
 }
 
-fn captura(piezas: (pieza::Pieza, pieza::Pieza)) -> ResultadoCaptura {
+fn captura(piezas: (Pieza, Pieza)) {
     let pieza_negra = piezas.0;
     let pieza_blanca = piezas.1;
 
     if pieza_negra.puede_capturar(&pieza_blanca) {
         if pieza_blanca.puede_capturar(&pieza_negra) {
-            ResultadoCaptura::AmbasCaptura
+            println!("E");
         } else {
-            ResultadoCaptura::NegraCaptura
+            println!("N");
         }
     } else if pieza_blanca.puede_capturar(&pieza_negra) {
-        ResultadoCaptura::BlancaCaptura
+        println!("B");
     } else {
-        ResultadoCaptura::NingunaCaptura
+        println!("P");
     }
 }
 
@@ -113,20 +113,5 @@ fn main(){
         }
     };
 
-    let resultado_captura = captura(piezas);
-
-    match resultado_captura {
-        ResultadoCaptura::AmbasCaptura => {
-            println!("E");
-        }
-        ResultadoCaptura::NingunaCaptura => {
-            println!("P");
-        }
-        ResultadoCaptura::NegraCaptura => {
-            println!("N");
-        }
-        ResultadoCaptura::BlancaCaptura => {
-            println!("B");
-        }
-    }
+    captura(piezas);
 }
