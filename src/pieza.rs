@@ -88,3 +88,59 @@ impl Pieza {
         false
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::color::Color;
+    use crate::tipo::Tipo;
+
+    #[test]
+    fn rey_puede_capturar() {
+        let pieza1 = Pieza::new(Color::Blanco, Tipo::Rey, 2, 2);
+        let pieza2 = Pieza::new(Color::Negro, Tipo::Peon, 2, 3);
+        assert!(pieza1.puede_capturar(&pieza2));
+    }
+
+    #[test]
+    fn dama_puede_capturar() {
+        let pieza1 = Pieza::new(Color::Blanco, Tipo::Dama, 2, 2);
+        let pieza2 = Pieza::new(Color::Negro, Tipo::Alfil, 8, 2);
+        assert!(pieza1.puede_capturar(&pieza2));
+    }
+
+    #[test]
+    fn alfil_puede_capturar() {
+        let pieza1 = Pieza::new(Color::Blanco, Tipo::Alfil, 2, 2);
+        let pieza2 = Pieza::new(Color::Negro, Tipo::Peon, 3, 3);
+        assert!(pieza1.puede_capturar(&pieza2));
+    }
+
+    #[test]
+    fn igual_color_no_captura() {
+        let pieza1 = Pieza::new(Color::Blanco, Tipo::Rey, 2, 2);
+        let pieza2 = Pieza::new(Color::Blanco, Tipo::Peon, 2, 3);
+        assert_eq!(false, pieza1.puede_capturar(&pieza2));
+    }
+
+    #[test]
+    fn caballo_puede_capturar() {
+        let pieza1 = Pieza::new(Color::Blanco, Tipo::Caballo, 2, 2);
+        let pieza2 = Pieza::new(Color::Negro, Tipo::Peon, 3, 4);
+        assert!(pieza1.puede_capturar(&pieza2));
+    }
+
+    #[test]
+    fn torre_puede_capturar() {
+        let pieza1 = Pieza::new(Color::Blanco, Tipo::Torre, 2, 2);
+        let pieza2 = Pieza::new(Color::Negro, Tipo::Peon, 2, 8);
+        assert!(pieza1.puede_capturar(&pieza2));
+    }
+
+    #[test]
+    fn peon_puede_capturar() {
+        let pieza1 = Pieza::new(Color::Blanco, Tipo::Peon, 7, 2);
+        let pieza2 = Pieza::new(Color::Negro, Tipo::Dama, 6, 1);
+        assert!(pieza1.puede_capturar(&pieza2));
+    }
+}

@@ -8,6 +8,7 @@ use tipo::Tipo;
 
 use std::fs::File;
 use std::env;
+use std::process::exit;
 use std::io::{self, prelude::*};
 
 fn leer_tablero(file_path: &str) -> io::Result<(Pieza, Pieza)> {
@@ -109,7 +110,7 @@ fn main(){
         Ok(piezas) => piezas,
         Err(error) =>{
             println!("{}", error);
-            return;
+            exit(-1);
         }
     };
 
