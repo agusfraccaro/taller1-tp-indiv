@@ -1,3 +1,2 @@
-pub mod tipo;
-pub mod color;
+pub mod funciones;
 pub mod pieza;
